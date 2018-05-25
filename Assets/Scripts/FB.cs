@@ -15,7 +15,7 @@ public class FB : MonoBehaviour {
 	public static DatabaseReference reference;		// holds the database reference, set below
 	// Use this for initialization
 
-	public string userIdNum;		// TODO finish this
+	public string userIdNum;		// TODO finish this to log and see if mutliple scripts are calling different numbers.
 
 	// protected virtual allows for inheriting classes to use and modify this method.
 	protected virtual void Start () {

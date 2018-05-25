@@ -20,6 +20,9 @@ public class PieceDisplay : FB {
 	protected override void Start () {
 		base.Start ();		// inherits from FB, used to login to firebase.
 
+
+		Debug.Log (base.userIdNum);
+
 		DisplayPieces ();		// display's game peices from firebase data.
 
 		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("InGame").ChildChanged += NewColorSet;		// event listener at firebase for new children in game.

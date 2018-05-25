@@ -672,6 +672,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 782c6356a7fe84a209ad3c0c7db8377b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  userIdNum: 
   playerPiece: {fileID: 1585804754999206, guid: d03356fe1f6bc440ead5c1a923a928a1,
     type: 2}
   diceManager: {fileID: 293371504}

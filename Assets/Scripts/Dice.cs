@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;		// for UI elements
 
-public class Dice : MonoBehaviour {
+public class Dice : FB {
 	private int[] values;	// holds each dice roll value
 	private Text diceRollText;		// display's dice total value
 
-	void Start(){
-		diceRollText = GameObject.Find ("DiceRollText").GetComponent<Text> ();	
+	protected override void Start(){
+		base.Start ();		// login to firebase.
+		diceRollText = GameObject.Find ("DiceRollText").GetComponent<Text> ();		// find the dice roll text indicator in scene.
 	}
 
 

@@ -29,6 +29,9 @@ public class FireBase : MonoBehaviour {
 
 	private Transform scroller;					// game selection buttons are childed in the scene to this transform for display.
 
+	private Transform debugWindowTransform;
+	public Text debugText;				// Text prefab for debugging in scene.
+
 	// Use this for initialization
 	void Start () {
 
@@ -93,6 +96,8 @@ public class FireBase : MonoBehaviour {
 			// game selection buttons are childed in the scene to this transform for display.
 			scroller = GameObject.Find("Content").GetComponent<Transform>();
 
+			//debugWindowTransform = GameObject.Find ("DebugWindow").GetComponent<Transform> ();	// for debuging without a console.
+
 			StartCoroutine (DisplayOpenGames (done => {
 
 				if (done) {
@@ -109,6 +114,7 @@ public class FireBase : MonoBehaviour {
 
 			}));
 		}
+
 			
 	}
 
@@ -120,8 +126,15 @@ public class FireBase : MonoBehaviour {
 		}
 		// Do something with the data in args.Snapshot
 		//Debug.Log(args.Snapshot.Key.ToString());		// display's the newly added child's key.
+	}
 
-	
+	// passes text to the DebugWindow in the scene.
+	// must activate window in the scene and link it to this script first.
+	private void Debugger(string text){
+		Text button;		// declare variable to hold buttons as they're being instantiated
+		button = Instantiate(debugText, transform.position, Quaternion.identity) as Text;
+		button.transform.SetParent (debugWindowTransform, false);	// set parent to scroll view, keep original scale.
+		button.text = text;
 
 	}
 
@@ -154,6 +167,7 @@ public class FireBase : MonoBehaviour {
 		// if the newly added game name is NOT already on display as a button, create a button with the name.
 		if (!duplicateFound){
 		CreateGameSelectButton(args.Snapshot.Key.ToString());	// add the newly added game to the screen: game selection buttons.
+
 		}
 
 
