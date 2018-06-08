@@ -15,7 +15,6 @@ public class FB : MonoBehaviour {
 	public static DatabaseReference reference;		// holds the database reference, set below
 	// Use this for initialization
 
-	public string userIdNum;		// TODO finish this to log and see if mutliple scripts are calling different numbers.
 
 	// protected virtual allows for inheriting classes to use and modify this method.
 	protected virtual void Start () {
@@ -55,7 +54,7 @@ public class FB : MonoBehaviour {
 			Firebase.Auth.FirebaseUser newUser = task.Result;
 			Debug.LogFormat("User signed in successfully: {0} ({1})",
 				newUser.DisplayName, newUser.UserId);
-			userIdNum = newUser.UserId;		// TODO this too.
+		
 		});
 	}
 	

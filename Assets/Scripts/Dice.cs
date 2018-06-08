@@ -3,33 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;		// for UI elements
 
+// for Firebase
+using Firebase;
+using Firebase.Database;
+using Firebase.Unity.Editor;
+
+// can use all public methods and variables from FB, if base.Start is called somewhere else, no need to call it again.(already logged in).
+
 public class Dice : FB {
-	private int[] values;	// holds each dice roll value
 	private Text diceRollText;		// display's dice total value
 
 	protected override void Start(){
-		base.Start ();		// login to firebase.
+		
 		diceRollText = GameObject.Find ("DiceRollText").GetComponent<Text> ();		// find the dice roll text indicator in scene.
+
 	}
 
 
 
 	// roll two dice, save total and check for doubles.
-	public void Roll(){
-		
-		values = new int[2];	// reset to empty new array to hold two dice rolls.
-
-		for (int x = 0; x < 2; x++) {			// two dice rolls
-			values[x] = Random.Range (1, 7);	// random number between 1 & 6
-			//Debug.Log (x + " roll " + values [x]);	//log each dice roll
-		}
-		int total = values [0] + values [1];		// total dice roll.
-		//Debug.Log ("Total roll: " + total);		// log total.
+	public int Roll(){
+		int total = Random.Range (2, 13);	// random number between 2 and 12.
 
 		diceRollText.text = total.ToString ();		// print dice roll total to UI text.
-
-		if (values [0] == values [1]) {				// check for doubles.
-			Debug.Log ("DoubleROLL!!!");
-		}
+	
+		return total;					// return the total 
+	
 	}
 }

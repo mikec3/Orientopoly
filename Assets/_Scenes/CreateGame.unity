@@ -1073,13 +1073,13 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1034848614}
   m_TextComponent: {fileID: 714453072}
   m_Placeholder: {fileID: 1642350435}
-  m_ContentType: 0
+  m_ContentType: 5
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 0
+  m_KeyboardType: 6
   m_LineType: 0
   m_HideMobileInput: 0
-  m_CharacterValidation: 0
+  m_CharacterValidation: 4
   m_CharacterLimit: 25
   m_OnEndEdit:
     m_PersistentCalls:
@@ -1275,13 +1275,13 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1265943105}
   m_TextComponent: {fileID: 575736792}
   m_Placeholder: {fileID: 102176357}
-  m_ContentType: 0
+  m_ContentType: 5
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 0
+  m_KeyboardType: 6
   m_LineType: 0
   m_HideMobileInput: 0
-  m_CharacterValidation: 0
+  m_CharacterValidation: 4
   m_CharacterLimit: 0
   m_OnEndEdit:
     m_PersistentCalls:
@@ -1363,6 +1363,7 @@ MonoBehaviour:
   nameInputPopUp: {fileID: 0}
   validationText: {fileID: 0}
   gameNameButton: {fileID: 0}
+  debugText: {fileID: 0}
 --- !u!4 &1276903527
 Transform:
   m_ObjectHideFlags: 0

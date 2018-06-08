@@ -195,7 +195,9 @@ public class FireBase : MonoBehaviour {
 					reference.Child("Games").Child(nameOfGame).Child("GameStarted").SetValueAsync(0);
 
 					// PlayerTurn's value will hold the name of the player who's turn it currently is.
-					reference.Child("Games").Child(nameOfGame).Child("PlayerTurn").SetValueAsync(0);
+					reference.Child("Games").Child(nameOfGame).Child("PlayerTurn").Child("roll").SetValueAsync(0);
+					reference.Child("Games").Child(nameOfGame).Child("PlayerTurn").Child("name").SetValueAsync(" ");
+
 
 					// save playerName of host from PLayerPrefs to db. the name was set on the main menu
 					// save's gamepiece not set yet also.

@@ -12,6 +12,23 @@ using Firebase.Unity.Editor;
 // inherits from FB, used to login to firebase.
 
 public class PieceDisplay : FB {
+
+	// defining class for playerTurn data save obj. Use this to store player turn name and dice roll info at the same time.
+	public class playerTurnDataObj {
+		public string name;
+		public int[] roll;
+
+		public playerTurnDataObj(){
+			this.name = " ";
+			this.roll = new int[]{0,0};
+
+		}
+
+		public playerTurnDataObj(string name, int[] roll){
+			this.name = name;
+			this.roll = roll;
+		}
+	}
 	
 	public GameObject playerPiece;		// attached in editor. player peices.
 	public GameObject diceManager;		// holds the dice manager object.
@@ -20,34 +37,15 @@ public class PieceDisplay : FB {
 	protected override void Start () {
 		base.Start ();		// inherits from FB, used to login to firebase.
 
-
-		Debug.Log (base.userIdNum);
-
 		DisplayPieces ();		// display's game peices from firebase data.
 
 		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("InGame").ChildChanged += NewColorSet;		// event listener at firebase for new children in game.
 		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("GameStarted").ValueChanged += GameStartedValueChanged;				// listen for when game starts.
-		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("PlayerTurn").ValueChanged += PlayerTurnChanged;						// listen for when it's now someone's turn.
 
 	}
 
-	// if new player name in PlayerTurn(fb) matches this player, than display the dice roller.
-	private void PlayerTurnChanged(object sender, ValueChangedEventArgs args) {
-		if (args.DatabaseError != null) {
-			Debug.LogError(args.DatabaseError.Message);
-			return;
-		}
-		//Debug.Log(args.Snapshot.Value);
-		if (args.Snapshot.Value.ToString() == PlayerPrefsManager.GetPlayerName ().ToString()) {
-			// it's now this player's turn, start the turn.
-			//Debug.Log("dice manager should turn on now");
-			diceManager.SetActive (true);	// my turn, turn dice on.
-		} else {
-			diceManager.SetActive (false);	// not my turn, turn dice off.
-		}
-	}
-
-
+	// when pieces are originally displayed, find first piece in heirarchy in scene and set it's name to be the PlayerTurn in FB. Other scripts will see the
+	// newly added name and initiate that player's turn.
 	private void IsItMyTurn(){
 		GameObject firstPiece = this.gameObject.transform.GetChild (0).gameObject;
 		Text tempText = firstPiece.GetComponentInChildren<Text> ();
@@ -56,7 +54,12 @@ public class PieceDisplay : FB {
 			Debug.Log ("I am the first player");
 
 			// set this player as the current name in PlayerTurn in fb. 
-			reference.Child ("Games").Child (PlayerPrefsManager.GetGameName ()).Child ("PlayerTurn").SetValueAsync (PlayerPrefsManager.GetPlayerName ());
+			// it saves player name AND dice roll. Probably use JsonUtility to save a w/ setrawjsonvalue();
+			int[] arr = new int[]{0,0};
+			playerTurnDataObj turn = new playerTurnDataObj(PlayerPrefsManager.GetPlayerName(), arr);
+			string json = JsonUtility.ToJson(turn);
+		
+			reference.Child ("Games").Child (PlayerPrefsManager.GetGameName ()).Child ("PlayerTurn").SetRawJsonValueAsync(json);
 		}
 	}
 
