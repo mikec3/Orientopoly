@@ -2015,6 +2015,7 @@ MonoBehaviour:
   playerPiece: {fileID: 1585804754999206, guid: d03356fe1f6bc440ead5c1a923a928a1,
     type: 2}
   diceManager: {fileID: 293371504}
+  gameBoard: {fileID: 1632228779}
 --- !u!4 &1862576202
 Transform:
   m_ObjectHideFlags: 0

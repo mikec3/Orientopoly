@@ -138,10 +138,9 @@ public class FireBase : MonoBehaviour {
 
 	}
 
-	// TODO check to make sure game being added isnt' already displayed.
-	// TODO works as expected in editor, but still displaying doubles while running on mobile.
-	// displayOpenGames is running first on mobile, need to inspect the duplicate checking.
+
 	// a new game has been added, display it now for the user to select if desired.
+	// checks to make sure it's not already displaying a game on screen.
 	void NewGameAdded(object sender, ChildChangedEventArgs args) {
 		if (args.DatabaseError != null) {
 			Debug.LogError(args.DatabaseError.Message);

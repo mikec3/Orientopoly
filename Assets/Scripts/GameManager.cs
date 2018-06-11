@@ -17,12 +17,15 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 	private Text gameText;			// attached in editor. Display's game info like player turn and dice roll.
 	private Board board;			// holds board script.
 
+
 	public Slider Xslider;			// for debugging UI stuffs.
 	public Slider Yslider;
 	public Slider IncSlider;
 
 	public GameObject boardPiece;		// board pieces prefab
 	public GameObject cornerPiece;		// corner pieces prefab
+
+	private GameObject[] gameBoardArray = new GameObject[42];		// array filled with board game spots.
 
 	public string playerCurrentTurn;		// player currently taking the turn.
 
@@ -63,6 +66,7 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 		}
 	}
 
+	//TODO refactor board creation to be in board script.
 	// corners are 0, 10, 21, 31
 	// index 1-9 is L side
 	// 11-20 is top side
@@ -89,6 +93,7 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 		tempPiece.transform.localScale = new Vector2(1f, 1f);		// reset scale, messed up for some reason after instantiating.
 		// move pieces according to tempPos
 		tempPiece.transform.localPosition = tempPos;
+		gameBoardArray [index] = tempPiece;			// set each piece being created to the corresponding index in gameBoardArray
 	}
 
 	// if new player name in PlayerTurn(fb) matches this player, than display the dice roller.
@@ -127,9 +132,43 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 			//TODO process dice roll data. from args. 
 			Debug.Log(playerCurrentTurn + " rolled a " + rollValue);	// ex. john rolled a 5.
 		gameText.text = playerCurrentTurn + " rolled a " + rollValue;	// show on screen who rolled what.
+		//Piece pieceScript = FindThisPlayer(playerCurrentTurn).GetComponent<Piece>();
+
+		MovePiece (rollValue);
+
+	
 	}
 
+	public void MovePiece(int rollV){
+		// look at all Piece object types in screen. Loop through each one, if current player turn matches with piece found, then move it. 
+		// Increment player position based on roll value, also, account for rolling over past 41.
+		Piece[] pieceArray = GameObject.FindObjectsOfType<Piece> ();
+		foreach (var p in pieceArray) {
+			if (p.pieceName == playerCurrentTurn) {
+				p.currentBoardPos += rollV;
+				if (p.currentBoardPos > 41) {							// roll over the counter if passes 41.
+					p.currentBoardPos = p.currentBoardPos - 42;
+				}
+				Debug.Log (p.pieceName + " is now at board pos: " + p.currentBoardPos);
+				// TODO move piece to new position here. Use a board array.
 
+				p.transform.localPosition = gameBoardArray[p.currentBoardPos].transform.localPosition;	// move current piece to board piece that corresponds to newly updated board position.
+
+				break;
+			}
+		}
+	}
+
+	public GameObject FindThisPlayer(string name){
+		GameObject[] playerArray = GameObject.FindGameObjectsWithTag ("PlayerPiece");
+		foreach (var piece in playerArray){
+			Piece pieceScript = piece.GetComponent<Piece> ();
+			if (pieceScript.pieceName == name){
+				return piece;
+			}
+		}
+		return null;
+	}
 
 	// perform dice roll and send results to FB.
 	public void RollDice(){

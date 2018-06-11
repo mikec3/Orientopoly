@@ -32,6 +32,7 @@ public class PieceDisplay : FB {
 	
 	public GameObject playerPiece;		// attached in editor. player peices.
 	public GameObject diceManager;		// holds the dice manager object.
+	public GameObject gameBoard;		// holds gameboard
 
 	// Use this for initialization
 	protected override void Start () {
@@ -47,10 +48,12 @@ public class PieceDisplay : FB {
 	// when pieces are originally displayed, find first piece in heirarchy in scene and set it's name to be the PlayerTurn in FB. Other scripts will see the
 	// newly added name and initiate that player's turn.
 	private void IsItMyTurn(){
-		GameObject firstPiece = this.gameObject.transform.GetChild (0).gameObject;
+		GameObject[] firstPieceArr = GameObject.FindGameObjectsWithTag ("PlayerPiece");	
+
+		GameObject firstPiece = firstPieceArr [0];
 		Text tempText = firstPiece.GetComponentInChildren<Text> ();
 		Debug.Log (PlayerPrefsManager.GetPlayerName ());
-		if (tempText.text == PlayerPrefsManager.GetPlayerName ()) {
+		if (tempText.text == PlayerPrefsManager.GetPlayerName ().ToString()) {
 			Debug.Log ("I am the first player");
 
 			// set this player as the current name in PlayerTurn in fb. 
@@ -176,7 +179,7 @@ public class PieceDisplay : FB {
 
 		// instantiate a new game piece.
 		GameObject tempPiece = Instantiate(playerPiece, transform.position, Quaternion.identity) as GameObject;
-		tempPiece.transform.SetParent (this.transform);		// set piece's parent to THIS
+		tempPiece.transform.SetParent (gameBoard.transform);		// set piece's parent to THIS
 		tempPiece.transform.localScale = new Vector2(1f, 1f);		// reset scale, messed up for some reason after instantiating.
 		tempPiece.transform.Translate (0, -posPlus, 0);		// move piece after being instantiated, increments as each piece is made.
 		Text tempText = tempPiece.GetComponentInChildren<Text>();		// find text componant in children of peice image
