@@ -134,12 +134,12 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 		gameText.text = playerCurrentTurn + " rolled a " + rollValue;	// show on screen who rolled what.
 		//Piece pieceScript = FindThisPlayer(playerCurrentTurn).GetComponent<Piece>();
 
-		MovePiece (rollValue);
 
+		NewPlayersTurn (MovePiece (rollValue)); // TODO determine next player's turn
 	
 	}
 
-	public void MovePiece(int rollV){
+	public Piece MovePiece(int rollV){
 		// look at all Piece object types in screen. Loop through each one, if current player turn matches with piece found, then move it. 
 		// Increment player position based on roll value, also, account for rolling over past 41.
 		Piece[] pieceArray = GameObject.FindObjectsOfType<Piece> ();
@@ -150,24 +150,34 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 					p.currentBoardPos = p.currentBoardPos - 42;
 				}
 				Debug.Log (p.pieceName + " is now at board pos: " + p.currentBoardPos);
-				// TODO move piece to new position here. Use a board array.
 
 				p.transform.localPosition = gameBoardArray[p.currentBoardPos].transform.localPosition;	// move current piece to board piece that corresponds to newly updated board position.
-
+				return p;
 				break;
 			}
 		}
+		return null;
 	}
 
-	public GameObject FindThisPlayer(string name){
-		GameObject[] playerArray = GameObject.FindGameObjectsWithTag ("PlayerPiece");
-		foreach (var piece in playerArray){
-			Piece pieceScript = piece.GetComponent<Piece> ();
-			if (pieceScript.pieceName == name){
-				return piece;
+	public void NewPlayersTurn(Piece p){
+		bool foundNextPlayer = false;
+		int index = p.transform.GetSiblingIndex ();
+		while (!foundNextPlayer) {
+			index++;
+			if (this.transform.GetChild (index).tag == "PlayerPiece") {
+				
+				foundNextPlayer = true;
+				Piece nextPlayer = this.transform.GetChild (index).GetComponent<Piece> ();
+				Debug.Log (nextPlayer.pieceName);
+				if (nextPlayer.pieceName == PlayerPrefsManager.GetPlayerName ().ToString ()) {
+					diceManager.gameObject.SetActive (true);
+					break;
+				}
+			}
+			if (index >= this.transform.childCount) {
+				index = 0;
 			}
 		}
-		return null;
 	}
 
 	// perform dice roll and send results to FB.
@@ -177,7 +187,9 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 
 		// send dice rresults to fb.
 		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("PlayerTurn").Child("roll").SetValueAsync(diceRollResults);
+		diceManager.gameObject.SetActive (false);			// turn off dice gameobject AFTER player has rolled.
 
-	}
-
+		}
 }
+
+
