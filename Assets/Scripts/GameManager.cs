@@ -16,6 +16,9 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 	public Dice diceManager;		// attached in editor.
 	private Text gameText;			// attached in editor. Display's game info like player turn and dice roll.
 	private Board board;			// holds board script.
+	public PieceDisplay pieceDisplay;		// pieceDisplay script attached in editor.
+
+	public GameObject endTurnButton;		// button that ends player's turn and tells firebase who next player is. Listeners then see new player's turn name.
 
 
 	public Slider Xslider;			// for debugging UI stuffs.
@@ -26,6 +29,9 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 	public GameObject cornerPiece;		// corner pieces prefab
 
 	private GameObject[] gameBoardArray = new GameObject[42];		// array filled with board game spots.
+
+	// Not currently using a data struct to hold all players in scene, will just look up all player pieces in scene each time, will optimize later if needed.
+	//public Dictionary<string, Piece> allPieces = new Dictionary<string, Piece>();		// Dictionary holding all current Pieces.
 
 	public string playerCurrentTurn;		// player currently taking the turn.
 
@@ -38,7 +44,7 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 		board = GetComponent<Board>();		// board component attached.
 
 		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("PlayerTurn").Child("name").ValueChanged += PlayerTurnChanged;
-		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("PlayerTurn").Child("roll").ValueChanged += RollValueChanged;
+		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("PlayerTurn").Child("uId").ValueChanged += RollValueChanged;
 
 		showBoardPos ();		// initial slider values are x:-514 y:-417 inc:94
 	}
@@ -117,25 +123,31 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 		Debug.Log("It's " + playerCurrentTurn + "'s turn");
 	}
 
-	// TODO make players move with dice roll.
+	//TODO currently if a player rolls the same thing as the last player, it doesn't trigger this method.
+	//TODO fix me first.
+	// make players move with dice roll.
 	// look at new die roll, tell it to all players.
 	private void RollValueChanged(object sender, ValueChangedEventArgs args) {
-		//Debug.Log ("roll value changed");
-		if (args.DatabaseError != null) {
-			Debug.LogError(args.DatabaseError.Message);
-			return;
-		}
-		int rollValue = System.Convert.ToInt32(args.Snapshot.Value);
-		lastRoll = rollValue;		// save to this script as lastRoll.
 
 
-			//TODO process dice roll data. from args. 
-			Debug.Log(playerCurrentTurn + " rolled a " + rollValue);	// ex. john rolled a 5.
-		gameText.text = playerCurrentTurn + " rolled a " + rollValue;	// show on screen who rolled what.
-		//Piece pieceScript = FindThisPlayer(playerCurrentTurn).GetComponent<Piece>();
+		StartCoroutine (SearchPlayerTurnAndDiceRoll (done => {
+
+			if (done) {
+				// DO NEXT!!!!!!!!
+				// TODO(get the roll Value from firebase), update this script, show roll on screen, move piece, find next player.
+				//process dice roll data. from args. 
+				Debug.Log(playerCurrentTurn + " rolled a " + lastRoll);	// ex. john rolled a 5.
+				gameText.text = playerCurrentTurn + " rolled a " + lastRoll;	// show on screen who rolled what.
+				//Piece pieceScript = FindThisPlayer(playerCurrentTurn).GetComponent<Piece>();
 
 
-		NewPlayersTurn (MovePiece (rollValue)); // TODO determine next player's turn
+				MovePiece (lastRoll); // TODO determine next player's turn
+
+			} else {
+				Debug.Log ("error in coroutine");
+			}
+
+		}));
 	
 	}
 
@@ -149,7 +161,7 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 				if (p.currentBoardPos > 41) {							// roll over the counter if passes 41.
 					p.currentBoardPos = p.currentBoardPos - 42;
 				}
-				Debug.Log (p.pieceName + " is now at board pos: " + p.currentBoardPos);
+				//Debug.Log (p.pieceName + " is now at board pos: " + p.currentBoardPos);
 
 				p.transform.localPosition = gameBoardArray[p.currentBoardPos].transform.localPosition;	// move current piece to board piece that corresponds to newly updated board position.
 				return p;
@@ -159,37 +171,95 @@ public class GameManager : FB {	// Inherits from FB class, login to firebase.
 		return null;
 	}
 
-	public void NewPlayersTurn(Piece p){
-		bool foundNextPlayer = false;
-		int index = p.transform.GetSiblingIndex ();
-		while (!foundNextPlayer) {
-			index++;
-			if (this.transform.GetChild (index).tag == "PlayerPiece") {
+	// find all players in scene, make it the next player's turn.
+	public void NewPlayersTurn(){
+			// turn OFF the endTurnButton, because in order to get to this method, they must have pressed it.
+		endTurnButton.gameObject.SetActive(false);
+		Piece[] piecesInScene = pieceDisplay.ReturnAllPlayerPiecesInScene();	// create an array of all active pieces
+		for (int x = 0; x <= piecesInScene.Length - 1; x++) {
+			if (piecesInScene [x].pieceName == playerCurrentTurn) {			// find the current player in active pieces
 				
-				foundNextPlayer = true;
-				Piece nextPlayer = this.transform.GetChild (index).GetComponent<Piece> ();
-				Debug.Log (nextPlayer.pieceName);
-				if (nextPlayer.pieceName == PlayerPrefsManager.GetPlayerName ().ToString ()) {
-					diceManager.gameObject.SetActive (true);
-					break;
+				int nextIndex = x + 1;									// increment to next player in heirarchy.
+				if (nextIndex == piecesInScene.Length) {				// rollover index if at bottom of heirarchy.
+					nextIndex = 0;
 				}
-			}
-			if (index >= this.transform.childCount) {
-				index = 0;
+
+
+				// set next player's name in firebase. childUPdated methods will see this and trigger that player's turn.
+				reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("PlayerTurn").Child("name").SetValueAsync(piecesInScene[nextIndex].pieceName);
+				Debug.Log ("setting " + piecesInScene [nextIndex].pieceName + " as next player");
+				break;					// get out of the loop after setting the next player's name in firebase.
 			}
 		}
-	}
+				
+			}
+
+		
+	
 
 	// perform dice roll and send results to FB.
 	public void RollDice(){
 		int diceRollResults = diceManager.Roll ();	// initialize diceRollResults to hold the results that will be returned.
-		//Debug.Log (diceRollResults);			// log dice roll results
+		Debug.Log (diceRollResults);			// log dice roll results
+		diceManager.gameObject.SetActive (false);			// turn off dice gameobject AFTER player has rolled.
+		endTurnButton.gameObject.SetActive(true);			// turn ON the endTurnButton GameObject. Player can end their turn.
 
 		// send dice rresults to fb.
+		// TODO player turn isn't working sometimes
 		reference.Child("Games").Child(PlayerPrefsManager.GetGameName()).Child("PlayerTurn").Child("roll").SetValueAsync(diceRollResults);
-		diceManager.gameObject.SetActive (false);			// turn off dice gameobject AFTER player has rolled.
+
+		reference.Child ("Games").Child (PlayerPrefsManager.GetGameName ()).Child ("PlayerTurn").Child ("uId").SetValueAsync(Random.Range(0f,10000f));				// set the key as the value for uId.
 
 		}
+
+	// search for pieces
+	public IEnumerator SearchPlayerTurnAndDiceRoll(System.Action<bool> done){
+		var task = FirebaseDatabase.DefaultInstance.GetReference ("Games").Child(PlayerPrefsManager.GetGameName()).Child("PlayerTurn").GetValueAsync ();
+
+		while (!task.IsCompleted)
+			yield return null;
+
+		if (task.IsFaulted){
+			// handle the error
+			Debug.Log("could not read database");
+		}
+		else {
+			DataSnapshot snapshot = task.Result;
+			bool nameSame = true;
+			bool diceSame = true;
+			// loops through all children of "Games" ex. childSnap.Key = "Mike's Game"
+			foreach (var childSnap in snapshot.Children) {
+				//Debug.Log (childSnap.Key.ToString());		// nameOfGame
+				if (childSnap.Key.ToString () == "name" && childSnap.Value.ToString () != playerCurrentTurn) {
+					nameSame = false;
+				
+				} 
+				if (childSnap.Key.ToString () == "roll" && System.Convert.ToInt32 (childSnap.Value) != lastRoll) {
+					diceSame = false;
+
+				}
+
+				// debug area _________________,,,,
+
+//				if (childSnap.Key.ToString () == "name") Debug.Log (childSnap.Key.ToString () + " " + childSnap.Value.ToString () + " " + playerCurrentTurn);
+//				if (childSnap.Key.ToString () == "roll") Debug.Log (childSnap.Key.ToString () + " " + System.Convert.ToInt32 (childSnap.Value) + " " + lastRoll);
+
+				// end debug area ^^^^^^^^^^^^
+
+				if (childSnap.Key.ToString () == "roll") {
+					lastRoll = System.Convert.ToInt32 (childSnap.Value);			// set value of lastroll as the value from firebase.
+				}
+			}
+			if (!nameSame && !diceSame) {
+				gameText.text = "ON NO!!!!! dice results not uploaded!";
+				Debug.Log ("WARNING!!!!! dice results not uploaded!");
+			} else {
+				Debug.Log ("dice results uploaded");
+			}
+			done (true);		// signal to startCouritine calling this that processing is done.
+
+		}
+	}
 }
 
 

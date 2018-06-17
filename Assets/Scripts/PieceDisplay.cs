@@ -16,15 +16,15 @@ public class PieceDisplay : FB {
 	// defining class for playerTurn data save obj. Use this to store player turn name and dice roll info at the same time.
 	public class playerTurnDataObj {
 		public string name;
-		public int[] roll;
+		public int roll;
 
 		public playerTurnDataObj(){
 			this.name = " ";
-			this.roll = new int[]{0,0};
+			this.roll = 0;
 
 		}
 
-		public playerTurnDataObj(string name, int[] roll){
+		public playerTurnDataObj(string name, int roll){
 			this.name = name;
 			this.roll = roll;
 		}
@@ -33,6 +33,7 @@ public class PieceDisplay : FB {
 	public GameObject playerPiece;		// attached in editor. player peices.
 	public GameObject diceManager;		// holds the dice manager object.
 	public GameObject gameBoard;		// holds gameboard
+	public GameManager gameManager;		// gameManager script attached in editor.
 
 	// Use this for initialization
 	protected override void Start () {
@@ -52,17 +53,17 @@ public class PieceDisplay : FB {
 
 		GameObject firstPiece = firstPieceArr [0];
 		Text tempText = firstPiece.GetComponentInChildren<Text> ();
-		Debug.Log (PlayerPrefsManager.GetPlayerName ());
-		if (tempText.text == PlayerPrefsManager.GetPlayerName ().ToString()) {
+		if (tempText.text == PlayerPrefsManager.GetPlayerName ().ToString()) {		// use the text below the piece to see if it matches with this player.
 			Debug.Log ("I am the first player");
 
 			// set this player as the current name in PlayerTurn in fb. 
 			// it saves player name AND dice roll. Probably use JsonUtility to save a w/ setrawjsonvalue();
-			int[] arr = new int[]{0,0};
-			playerTurnDataObj turn = new playerTurnDataObj(PlayerPrefsManager.GetPlayerName(), arr);
-			string json = JsonUtility.ToJson(turn);
-		
-			reference.Child ("Games").Child (PlayerPrefsManager.GetGameName ()).Child ("PlayerTurn").SetRawJsonValueAsync(json);
+			// saves as playerTurn -> name: value, roll: value
+//			int arr = 0;
+//			playerTurnDataObj turn = new playerTurnDataObj(PlayerPrefsManager.GetPlayerName(), arr);
+//			string json = JsonUtility.ToJson(turn);
+//		
+			reference.Child ("Games").Child (PlayerPrefsManager.GetGameName ()).Child ("PlayerTurn").Child ("name").SetValueAsync (PlayerPrefsManager.GetPlayerName ().ToString ());
 		}
 	}
 
@@ -115,6 +116,15 @@ public class PieceDisplay : FB {
 		}
 
 
+	}
+
+	public Piece[] ReturnAllPlayerPiecesInScene(){
+		GameObject[] activePieces = GameObject.FindGameObjectsWithTag ("PlayerPiece");	// build array of all game pieces in scene.
+		Piece[] allPiecesInScene = new Piece[activePieces.Length];
+		for (int x = 0; x <= allPiecesInScene.Length - 1; x++) {
+			allPiecesInScene [x] = activePieces [x].GetComponent<Piece> ();	// populate allPiecesInScene array with Piece component from all active PlayerPiece gameobjects in scene.
+		}
+		return allPiecesInScene;			// return the array of all active Piece scripts in the scene.
 	}
 				
 	// search for pieces in firebase. 
@@ -190,7 +200,9 @@ public class PieceDisplay : FB {
 		// add a way to identify the game piece objects later by name. (script on gamepiece object with a public varaible; and set it here).
 		Piece pieceScript = tempPiece.GetComponent<Piece>();
 		pieceScript.pieceName = player;		// set pieceName in Piece attached to gameobject to player's name from firebase.
-		//Debug.Log(pieceScript.pieceName);		// logs the player's name saved in variable pieceName in script called piece which is attached to gameobject.
+
+		// Decided to not store game players in an array or dictionary, just going to look it up each time in scene, can optimize later if needed.
+		//gameManager.allPieces.Add(player,pieceScript);			// populate the allPieces in gameManager as pieces are being created.
 	}
 
 	public void SetColor(GameObject obj, string color){

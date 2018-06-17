@@ -9,4 +9,8 @@ public class Piece : MonoBehaviour {
 	// Player's name. set by data from firebase when the piece is created. Looked at by many scripts for game play.
 	public string pieceName;
 	public int currentBoardPos;			// hold player's position
+
+	void Start(){
+		currentBoardPos = 0;			// start at GO (0) pos.
+	}
 }
